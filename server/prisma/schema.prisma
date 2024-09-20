@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Rationale {
+  id                Int                    @id @default(autoincrement())
+  module            String                 @default("Medical Review") // Currently, all rationales are for the Medical Review module
+  source            String?                // Optional
+  rationaleSummary  String
+  rationaleText     String
+  enable            Boolean                @default(true) // Active flag
+  groupId           Int
+  sequence          Int
+  specialties       RationaleSpecialty[]   // One-to-many relation with RationaleSpecialty
+  decision          RationaleDecision?     // One-to-one relation with RationaleDecision
+  procedures        RationaleProcedure[]   // One-to-many relation with RationaleProcedure
+  modifiers         RationaleModifier[]    // One-to-many relation with RationaleModifier
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
+
+model SpecialtyCode {
+  id                Int                    @id @default(autoincrement())
+  code              String                 @unique
+  rationaleSpecialty RationaleSpecialty[]   // One-to-many relation with RationaleSpecialty
+}
+
+model RationaleSpecialty {
+  id                Int                    @id @default(autoincrement())
+  enable            Boolean                @default(true) // Active flag
+  specialtyCodeId   Int
+  specialtyCode     SpecialtyCode           @relation(fields: [specialtyCodeId], references: [id],onDelete: Cascade)
+  rationaleId       Int
+  rationale         Rationale               @relation(fields: [rationaleId], references: [id],onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
+
+model DecisionList {
+  id                Int                    @id @default(autoincrement())
+  decision          String
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  rationaleDecision RationaleDecision?
+}
+
+model RationaleDecision {
+  id                Int                    @id @default(autoincrement())
+  decisionText      String
+  decisionId        Int @unique
+  decision          DecisionList           @relation(fields: [decisionId], references: [id] , onDelete: Cascade)
+  rationaleId       Int  @unique            // Foreign key for Rationale, must be unique for one-to-one
+  rationale         Rationale               @relation(fields: [rationaleId], references: [id], onDelete: Cascade) // One-to-one relation with Rationale
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
+
+model RationaleProcedure {
+  id                Int                    @id @default(autoincrement())
+  serviceCodeFrom   Int
+  serviceCodeTo     Int
+  serviceCodeList   Int
+  rationaleId       Int
+  rationale         Rationale               @relation(fields: [rationaleId], references: [id],onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
+
+model RationaleModifier {
+  id                Int                    @id @default(autoincrement())
+  modifierList      String
+  rationaleId       Int
+  rationale         Rationale               @relation(fields: [rationaleId], references: [id],onDelete: Cascade)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+}
