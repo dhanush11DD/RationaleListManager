@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rationaleRoute from "./rationale";
 import specialtyCodeRoute from "./specialtyCode";
-import decisionListRoute from "./DecisionList";
+import decisionListRoute from "./decisionList";
 import rationaleSpecialtyRoute from "./specialty";
 import rationaleDecisionRoute from "./decision";
 import rationaleProcedureRoute from "./procedure";

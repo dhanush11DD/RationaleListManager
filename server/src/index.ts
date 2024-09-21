@@ -1,10 +1,12 @@
 import express ,{Express,Request,Response} from 'express'
 import { PORT } from './secrets';
 import rootRouter from './routes';
+import cors from 'cors'
 import { PrismaClient } from '@prisma/client';
 
 const app:Express = express()
 app.use(express.json())
+app.use(cors())
 
 app.use('/',rootRouter)
 
