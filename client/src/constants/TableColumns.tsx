@@ -58,16 +58,16 @@ export const RationaleColumns = [
       header: "Id"
     },
     {
-      accessorKey: "enable",
-      header: "Enable"
-    },
-    {
-      accessorKey: "specialtyCodeId",
+      accessorKey: "specialtyCode.code",
       header: "Specialty Code Id"
     },
     {
       accessorKey: "rationaleId",
       header: "Rationale Id"
+    },
+    {
+      accessorKey: "enable",
+      header: "Enable"
     },
     {
       accessorKey: "createdAt",

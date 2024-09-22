@@ -6,6 +6,8 @@ export const createDecisionList = async (req: Request, res: Response) => {
     try {
         const { decision } = req.body;
 
+        console.log(req.body)
+
         const newDecisionList = await prismaClient.decisionList.create({
             data: {
                 decision

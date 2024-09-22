@@ -5,6 +5,7 @@ import { prismaClient } from "..";
 export const createRationaleSpecialty = async (req: Request, res: Response) => {
     try {
         const { enable, specialtyCodeId, rationaleId } = req.body;
+        console.log(req.body)
 
         const newRationaleSpecialty = await prismaClient.rationaleSpecialty.create({
             data: {
@@ -59,6 +60,7 @@ export const getRationaleSpecialtyById = async (req: Request, res: Response) => 
 export const updateRationaleSpecialty = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { enable, specialtyCodeId, rationaleId } = req.body;
+    console.log(req.body)
     try {
         const updatedRationaleSpecialty = await prismaClient.rationaleSpecialty.update({
             where: { id: parseInt(id) },
