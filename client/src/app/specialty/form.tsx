@@ -26,26 +26,22 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
   const [rationaleData, setRationaleData] = useState([]);
   const [specialtyCodeData, setSpecialtyCodeData] = useState([]);
 
-  console.log(isEdit)
-
   useEffect(() => {
-    const fetchRationaleData = async () => {
+    const fetchData = async () => {
       try {
-        const rationaleResult = await apiClient.get("/rationale");
-        const specialtyCodeResult = await apiClient.get("/specialty-code");
+        const [rationaleResult, specialtyCodeResult] = await Promise.all([
+          apiClient.get("/rationale"),
+          apiClient.get("/specialty-code"),
+        ]);
 
-        if (rationaleResult.data) {
-          setRationaleData(rationaleResult.data);
-        }
-        if (specialtyCodeResult.data) {
-          setSpecialtyCodeData(specialtyCodeResult.data);
-        }
+        if (rationaleResult.data) setRationaleData(rationaleResult.data);
+        if (specialtyCodeResult.data) setSpecialtyCodeData(specialtyCodeResult.data);
       } catch (error: any) {
-        throw error;
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchRationaleData();
+    fetchData();
   }, []);
 
   const form = useForm<z.infer<typeof SpecialtySchema>>({
@@ -57,25 +53,28 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     },
   });
 
-  async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
+  const onSubmit = async (data: z.infer<typeof SpecialtySchema>) => {
     const postData = {
       enable: data.enable,
       rationaleId: parseInt(data.rationale_id),
       specialtyCodeId: parseInt(data.specialty_code),
     };
 
-    if (isEdit) {
-      await apiClient.put(`/specialty/${isEdit.id}`, postData);
-      console.log("Editable data submitted:", postData);
-      form.reset()
-    } else {
-      await apiClient.post("/specialty", postData);
-      console.log("New data submitted:", postData);
-      form.reset()
+    try {
+      if (isEdit) {
+        await apiClient.put(`/specialty/${isEdit.id}`, postData);
+        console.log("Editable data submitted:", postData);
+      } else {
+        await apiClient.post("/specialty", postData);
+        console.log("New data submitted:", postData);
+      }
+      form.reset();
+    } catch (error: any) {
+      console.error("Error submitting data:", error);
+    } finally {
+      setSheetOpened(false);
     }
-
-    setSheetOpened(false);
-  }
+  };
 
   return (
     <Form {...form}>
@@ -90,7 +89,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
               <FormControl>
                 <select
                   {...field}
-                  value={isEdit ? isEdit.specialtyCodeId :field.value}
+                  value={isEdit ? isEdit.specialtyCodeId : field.value}
                   onChange={field.onChange}
                   className="form-select"
                 >
@@ -117,7 +116,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
               <FormControl>
                 <select
                   {...field}
-                  value={isEdit ? isEdit.rationaleId :field.value}
+                  value={isEdit ? isEdit.rationaleId : field.value}
                   onChange={field.onChange}
                   className="form-select"
                 >

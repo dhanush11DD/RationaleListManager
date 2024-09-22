@@ -1,17 +1,9 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -19,31 +11,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import apiClient from "@/apiClient/apiClient"
-import { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import apiClient from "@/apiClient/apiClient";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 
 const SpecialtySchema = z.object({
-  service_from: z.string().nonempty({ message: "Sercice code from is required" }),
-  service_to: z.string().nonempty({ message: "Sercice code to is required" }),
-  service_list: z.string().nonempty({ message: "Sercice code list is required" }),
+  service_from: z.string().nonempty({ message: "Service code from is required" }),
+  service_to: z.string().nonempty({ message: "Service code to is required" }),
+  service_list: z.string().nonempty({ message: "Service code list is required" }),
   rationale_id: z.string().nonempty({ message: "Rationale ID is required" }),
 });
 
-export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
+export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
   const [rationaleData, setRationaleData] = useState([]);
 
   useEffect(() => {
     const fetchRationaleData = async () => {
       try {
         const rationaleResult = await apiClient.get("/rationale");
-
         if (rationaleResult.data) {
           setRationaleData(rationaleResult.data);
         }
-      } catch (error: any) {
-        throw error;
+      } catch (error) {
+        console.error("Error fetching rationale data:", error);
       }
     };
 
@@ -53,76 +44,72 @@ export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
   const form = useForm<z.infer<typeof SpecialtySchema>>({
     resolver: zodResolver(SpecialtySchema),
     defaultValues: {
-      service_from: isEdit?.service_from || 0,
-      service_to: isEdit?.service_to || 0,
-      service_list: isEdit?.service_list || 0,
+      service_from: isEdit?.service_from || "",
+      service_to: isEdit?.service_to || "",
+      service_list: isEdit?.service_list || "",
       rationale_id: isEdit?.rationale_id || "",
     },
   });
 
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
-    if (isEdit) {
-      // PUT method for editing
-      const postData = {
-        rationaleId : parseInt(data.rationale_id),
-        serviceCodeFrom : parseInt(data.service_from),
-        serviceCodeTo : parseInt(data.service_to),
-        serviceCodeList : parseInt(data.service_list)
+    const postData = {
+      rationaleId: parseInt(data.rationale_id),
+      serviceCodeFrom: parseInt(data.service_from),
+      serviceCodeTo: parseInt(data.service_to),
+      serviceCodeList: parseInt(data.service_list),
+    };
+
+    try {
+      if (isEdit) {
+        await apiClient.put(`/procedure/${isEdit.id}`, postData);
+        console.log("Editable data submitted:", postData);
+      } else {
+        await apiClient.post("/procedure", postData);
+        console.log("New data submitted:", postData);
       }
-      await apiClient.put(`/procedure/${isEdit.id}`, postData);
-      console.log("Editable data submitted:", postData);
-      setSheetOpened(false)
-    } else {
-      // POST method for new data
-      const postData = {
-        rationaleId : parseInt(data.rationale_id),
-        serviceCodeFrom : parseInt(data.service_from),
-        serviceCodeTo : parseInt(data.service_to),
-        serviceCodeList : parseInt(data.service_list)
-      }
-      await apiClient.post("/procedure", postData);
-      console.log("New data submitted:", postData);
-      setSheetOpened(false)
+      setSheetOpened(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-3">
-      <FormField
+        <FormField
           control={form.control}
           name="service_from"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col mb-2">
               <FormLabel>Service Code From</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="service_from" {...field} />
+                <Input type="text" placeholder="Service Code From" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-          <FormField
+        <FormField
           control={form.control}
           name="service_to"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Service Code From</FormLabel>
+            <FormItem className="flex flex-col mb-2">
+              <FormLabel>Service Code To</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="service_to" {...field} />
+                <Input type="text" placeholder="Service Code To" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-              <FormField
+        <FormField
           control={form.control}
           name="service_list"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col mb-2">
               <FormLabel>Service Code List</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="service_list" {...field} />
+                <Input type="text" placeholder="Service Code List" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,34 +119,18 @@ export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
           control={form.control}
           name="rationale_id"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col mb-2">
               <FormLabel>Rationale ID</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder="Select a Rationale ID"
-                      defaultValue={field.value || "Select a Rationale ID"}
-                    >
-                      {field.value
-                        ? rationaleData.find(
-                            (item: any) => item.id === field.value
-                          )?.id
-                        : "Select a Rationale ID"}
-                    </SelectValue>
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {rationaleData.map((item, i) => (
-                    <SelectItem key={i} value={item?.id}>
-                      {item?.id}
-                    </SelectItem>
+              <FormControl>
+                <select {...field} className="form-select">
+                  <option value="">Select a Rationale ID</option>
+                  {rationaleData.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.id}
+                    </option>
                   ))}
-                </SelectContent>
-              </Select>
+                </select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

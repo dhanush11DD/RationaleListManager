@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { Button } from "@/components/ui/button"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,16 +11,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import apiClient from "@/apiClient/apiClient"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import apiClient from "@/apiClient/apiClient";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 const SpecialtySchema = z.object({
-  decision: z.string().nonempty({ message: "Sercice code from is required" })
+  decision: z.string().nonempty({ message: "Decision is required" }),
 });
 
-export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
-  
+export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof SpecialtySchema>>({
     resolver: zodResolver(SpecialtySchema),
@@ -30,33 +31,38 @@ export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
   });
 
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
-    if (isEdit) {
-      // PUT method for editing
-      const postData = {
-        decision : data.decision,
+    setLoading(true);
+    const postData = {
+      decision: data.decision,
+    };
+
+    try {
+      if (isEdit) {
+        // PUT method for editing
+        await apiClient.put(`/decision-list/${isEdit.id}`, postData);
+        console.log("Editable data submitted:", postData);
+      } else {
+        // POST method for new data
+        await apiClient.post("/decision-list", postData);
+        console.log("New data submitted:", postData);
       }
-      await apiClient.put(`/decision-list/${isEdit.id}`, postData);
-      console.log("Editable data submitted:", postData);
-      setSheetOpened(false)
-    } else {
-      // POST method for new data
-      const postData = {
-        decision : data.decision
-      }
-      await apiClient.post("/decision-list", postData);
-      console.log("New data submitted:", postData);
-      setSheetOpened(false)
+      setSheetOpened(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Optionally, handle error feedback for the user
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-3">
-      <FormField
+        <FormField
           control={form.control}
           name="decision"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col mb-2">
               <FormLabel>Decision</FormLabel>
               <FormControl>
                 <Input type="text" placeholder="Decision" {...field} />
@@ -65,7 +71,9 @@ export function SpecialtyForm({ isEdit,setSheetOpened }: any) {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Submit"}
+        </Button>
       </form>
     </Form>
   );
