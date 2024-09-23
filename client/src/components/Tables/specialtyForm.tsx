@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import apiClient from "@/apiClient/apiClient";
 import { Input } from "@/components/ui/input";
+import {useEffect} from "react"
 
 const SpecialtySchema = z.object({
   code: z.string().nonempty({ message: "Specialty code is required" }),
@@ -27,6 +28,19 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     },
   });
 
+  useEffect(() => {
+    if (isEdit) {
+      form.reset( {
+        code: isEdit?.code,
+      });
+      console.log(form.formState.defaultValues)
+    } else {
+      form.reset({
+        code: "",
+      });
+    }
+  }, [isEdit]);
+
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
     const postData = {
       code: data.code,
@@ -37,11 +51,15 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
         // PUT method for editing
         await apiClient.put(`/specialty-code/${isEdit.id}`, postData);
         console.log("Editable data submitted:", postData);
+        isEdit = null
       } else {
         // POST method for new data
         await apiClient.post("/specialty-code", postData);
         console.log("New data submitted:", postData);
       }
+      form.reset({
+        code: "",
+      })
       setSheetOpened(false);
     } catch (error) {
       console.error("Error submitting form:", error);

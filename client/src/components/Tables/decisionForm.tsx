@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import apiClient from "@/apiClient/apiClient";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 const SpecialtySchema = z.object({
   decision: z.string().nonempty({ message: "Decision is required" }),
@@ -26,9 +26,22 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
   const form = useForm<z.infer<typeof SpecialtySchema>>({
     resolver: zodResolver(SpecialtySchema),
     defaultValues: {
-      decision: isEdit?.decision || "",
+      decision:  "",
     },
   });
+
+  useEffect(() => {
+    if (isEdit) {
+      form.reset({
+        decision: isEdit?.decision,
+      });
+      console.log(form.formState.defaultValues)
+    } else {
+      form.reset({
+        decision:  "",
+      });
+    }
+  }, [isEdit]);
 
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
     setLoading(true);
@@ -37,15 +50,21 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     };
 
     try {
+      console.log(isEdit)
       if (isEdit) {
         // PUT method for editing
         await apiClient.put(`/decision-list/${isEdit.id}`, postData);
+        isEdit = null;
         console.log("Editable data submitted:", postData);
+        console.log(isEdit,"sdfsd")
       } else {
         // POST method for new data
         await apiClient.post("/decision-list", postData);
         console.log("New data submitted:", postData);
       }
+      form.reset({
+        decision:  "",
+      })
       setSheetOpened(false);
     } catch (error) {
       console.error("Error submitting form:", error);

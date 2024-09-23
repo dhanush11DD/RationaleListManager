@@ -44,12 +44,33 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
   const form = useForm<z.infer<typeof SpecialtySchema>>({
     resolver: zodResolver(SpecialtySchema),
     defaultValues: {
-      service_from: isEdit?.service_from || "",
-      service_to: isEdit?.service_to || "",
-      service_list: isEdit?.service_list || "",
-      rationale_id: isEdit?.rationale_id || "",
+      service_from:  "",
+      service_to: "",
+      service_list:  "",
+      rationale_id:   "",
     },
   });
+
+  
+  useEffect(() => {
+    if (isEdit) {
+      console.log(isEdit)
+      form.reset( {
+        service_from: isEdit?.serviceCodeFrom.toString() ,
+        service_to: isEdit?.serviceCodeTo.toString() ,
+        service_list: isEdit?.serviceCodeList.toString() ,
+        rationale_id: isEdit?.rationaleId.toString() ,
+      });
+      console.log(form.formState.defaultValues)
+    } else {
+      form.reset( {
+        service_from:  "",
+        service_to:  "",
+        service_list: "",
+        rationale_id:  "",
+      });
+    }
+  }, [isEdit]);
 
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
     const postData = {
@@ -63,10 +84,20 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
       if (isEdit) {
         await apiClient.put(`/procedure/${isEdit.id}`, postData);
         console.log("Editable data submitted:", postData);
+        isEdit = null
       } else {
         await apiClient.post("/procedure", postData);
         console.log("New data submitted:", postData);
       }
+
+      form.reset(
+        {
+          service_from:  "",
+          service_to:  "",
+          service_list: "",
+          rationale_id:  "",
+        }
+      )
       setSheetOpened(false);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -83,7 +114,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             <FormItem className="flex flex-col mb-2">
               <FormLabel>Service Code From</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="Service Code From" {...field} />
+                <Input type="number" placeholder="Service Code From" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -96,7 +127,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             <FormItem className="flex flex-col mb-2">
               <FormLabel>Service Code To</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="Service Code To" {...field} />
+                <Input type="number" placeholder="Service Code To" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,7 +140,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             <FormItem className="flex flex-col mb-2">
               <FormLabel>Service Code List</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="Service Code List" {...field} />
+                <Input type="number" placeholder="Service Code List" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

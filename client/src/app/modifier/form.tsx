@@ -47,6 +47,21 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     },
   });
 
+  useEffect(() => {
+    if (isEdit) {
+      form.reset({
+        modifier_list: isEdit?.modifierList,
+        rationale_id: isEdit?.rationaleId.toString(),
+      });
+      console.log(form.formState.defaultValues)
+    } else {
+      form.reset({
+        modifier_list: "",
+        rationale_id:  "",
+      });
+    }
+  }, [isEdit]);
+
   async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
     const postData = {
       rationaleId: parseInt(data.rationale_id),
@@ -57,10 +72,17 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
       if (isEdit) {
         await apiClient.put(`/modifier/${isEdit.id}`, postData);
         console.log("Editable data submitted:", postData);
+        isEdit = null
       } else {
         await apiClient.post("/modifier", postData);
         console.log("New data submitted:", postData);
       }
+      form.reset(
+        {
+          modifier_list:  "",
+          rationale_id:  "",
+        }
+      )
       setSheetOpened(false);
     } catch (error) {
       console.error("Error submitting form:", error);

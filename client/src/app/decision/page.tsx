@@ -25,7 +25,6 @@ type Props = {};
 
 type Decision = {
   id: number;
-  decisionText: string;
   decisionId: number;
   rationaleId: number;
   createdAt: string;
@@ -48,7 +47,7 @@ export default function OrdersPage({}: Props) {
   const clickDeleteBtn = async (row) =>{
     try{
       console.log("delete triggered")
-      const result = await apiClient.delete(`/specialty/${row.id}`)
+      const result = await apiClient.delete(`/decision/${row.id}`)
       setIsDelete(!isDelete)
       console.log("delete end")
     }catch(e){

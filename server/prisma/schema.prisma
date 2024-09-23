@@ -34,7 +34,7 @@ model Rationale {
   groupId           Int
   sequence          Int
   specialties       RationaleSpecialty[]   // One-to-many relation with RationaleSpecialty
-  decision          RationaleDecision?     // One-to-one relation with RationaleDecision
+  decision          RationaleDecision[]    // One-to-one relation with RationaleDecision
   procedures        RationaleProcedure[]   // One-to-many relation with RationaleProcedure
   modifiers         RationaleModifier[]    // One-to-many relation with RationaleModifier
   createdAt         DateTime               @default(now())
@@ -60,7 +60,7 @@ model RationaleSpecialty {
 
 model DecisionList {
   id                Int                    @id @default(autoincrement())
-  decision          String
+  decision          String                 
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
   rationaleDecision RationaleDecision[]
@@ -68,19 +68,21 @@ model DecisionList {
 
 model RationaleDecision {
   id                Int                    @id @default(autoincrement())
-  decisionText      String
-  decisionId        Int @unique
-  decision          DecisionList           @relation(fields: [decisionId], references: [id] , onDelete: Cascade)
-  rationaleId       Int  @unique            // Foreign key for Rationale, must be unique for one-to-one
-  rationale         Rationale               @relation(fields: [rationaleId], references: [id], onDelete: Cascade) // One-to-one relation with Rationale
+  decisionId        Int 
+  decision          DecisionList           @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  rationaleId       Int                    // Foreign key for Rationale, no longer unique
+  rationale         Rationale               @relation(fields: [rationaleId], references: [id], onDelete: Cascade) 
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
 }
 
+
+
+
 model RationaleProcedure {
   id                Int                    @id @default(autoincrement())
   serviceCodeFrom   Int
-  serviceCodeTo     Int
+  serviceCodeTo     Int 
   serviceCodeList   Int
   rationaleId       Int
   rationale         Rationale               @relation(fields: [rationaleId], references: [id],onDelete: Cascade)

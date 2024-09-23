@@ -105,11 +105,7 @@ export const decisionColumns = [
       header: "Id"
     },
     {
-      accessorKey: "decisionText",
-      header: "Decision Text"
-    },
-    {
-      accessorKey: "decisionId",
+      accessorKey: "decision.decision",
       header: "Decision Id"
     },
     {

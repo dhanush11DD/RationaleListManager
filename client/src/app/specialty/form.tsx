@@ -26,6 +26,15 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
   const [rationaleData, setRationaleData] = useState([]);
   const [specialtyCodeData, setSpecialtyCodeData] = useState([]);
 
+  const form = useForm<z.infer<typeof SpecialtySchema>>({
+    resolver: zodResolver(SpecialtySchema),
+    defaultValues: {
+      specialty_code: "",
+      rationale_id: "",
+      enable: true,
+    },
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -44,14 +53,23 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     fetchData();
   }, []);
 
-  const form = useForm<z.infer<typeof SpecialtySchema>>({
-    resolver: zodResolver(SpecialtySchema),
-    defaultValues: {
-      specialty_code: isEdit?.specialtyCodeId || "",
-      rationale_id: isEdit?.rationaleId || "",
-      enable: isEdit?.enable ?? true,
-    },
-  });
+  // Update form when `isEdit` changes
+  useEffect(() => {
+    if (isEdit) {
+      form.reset({
+        specialty_code: isEdit.specialtyCodeId.toString(),
+        rationale_id: isEdit.rationaleId.toString() ,
+        enable: isEdit.enable,
+      });
+      console.log(form.formState.defaultValues)
+    } else {
+      form.reset({
+        specialty_code: "",
+        rationale_id: "",
+        enable: true,
+      });
+    }
+  }, [isEdit]);
 
   const onSubmit = async (data: z.infer<typeof SpecialtySchema>) => {
     const postData = {
@@ -64,11 +82,18 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
       if (isEdit) {
         await apiClient.put(`/specialty/${isEdit.id}`, postData);
         console.log("Editable data submitted:", postData);
+        isEdit = null;
       } else {
         await apiClient.post("/specialty", postData);
         console.log("New data submitted:", postData);
       }
-      form.reset();
+      
+      form.reset({
+        specialty_code: "",
+        rationale_id: "",
+        enable: true,
+      }); // Reset form after successful submission
+      
     } catch (error: any) {
       console.error("Error submitting data:", error);
     } finally {
@@ -89,7 +114,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
               <FormControl>
                 <select
                   {...field}
-                  value={isEdit ? isEdit.specialtyCodeId : field.value}
+                  value={field.value}
                   onChange={field.onChange}
                   className="form-select"
                 >
@@ -116,7 +141,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
               <FormControl>
                 <select
                   {...field}
-                  value={isEdit ? isEdit.rationaleId : field.value}
+                  value={field.value}
                   onChange={field.onChange}
                   className="form-select"
                 >

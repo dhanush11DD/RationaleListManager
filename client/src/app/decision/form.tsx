@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,12 +12,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import apiClient from "@/apiClient/apiClient";
 import { useEffect, useState } from "react";
 
 const SpecialtySchema = z.object({
-  decision_text: z.string().nonempty({ message: "Decision text is required" }),
   decision_id: z.string().nonempty({ message: "Decision code is required" }),
   rationale_id: z.string().nonempty({ message: "Rationale ID is required" }),
 });
@@ -26,13 +26,19 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
 
   const form = useForm<z.infer<typeof SpecialtySchema>>({
     resolver: zodResolver(SpecialtySchema),
+    defaultValues: {
+      decision_id: "",
+      rationale_id: "",
+    },
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const rationaleResult = await apiClient.get("/rationale");
-        const decisionListResult = await apiClient.get("/decision-list");
+        const [rationaleResult, decisionListResult] = await Promise.all([
+          apiClient.get("/rationale"),
+          apiClient.get("/decision-list"),
+        ]);
 
         if (rationaleResult.data) setRationaleData(rationaleResult.data);
         if (decisionListResult.data) setDecisionListData(decisionListResult.data);
@@ -44,53 +50,54 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
     fetchData();
   }, []);
 
+  // Update form when `isEdit` changes
   useEffect(() => {
     if (isEdit) {
       form.reset({
-        decision_text: isEdit.decision_text || "",
-        decision_id: isEdit.decision_id || "",
-        rationale_id: isEdit.rationale_id || "",
+        decision_id: isEdit.decisionId.toString(),
+        rationale_id: isEdit.rationaleId.toString(),
+      });
+      console.log(form.formState.defaultValues);
+    } else {
+      form.reset({
+        decision_id: "",
+        rationale_id: "",
       });
     }
   }, [isEdit]);
 
-  async function onSubmit(data: z.infer<typeof SpecialtySchema>) {
+  const onSubmit = async (data: z.infer<typeof SpecialtySchema>) => {
     const postData = {
       rationaleId: parseInt(data.rationale_id),
       decisionId: parseInt(data.decision_id),
-      decisionText: data.decision_text,
     };
 
     try {
       if (isEdit) {
         await apiClient.put(`/decision/${isEdit.id}`, postData);
         console.log("Editable data submitted:", postData);
+        isEdit = null;
       } else {
         await apiClient.post("/decision", postData);
         console.log("New data submitted:", postData);
       }
+
+      form.reset({
+        decision_id: "",
+        rationale_id: "",
+      }); // Reset form after successful submission
+
+    } catch (error: any) {
+      console.error("Error submitting data:", error);
+    } finally {
       setSheetOpened(false);
-    } catch (error) {
-      console.error("Error submitting form:", error);
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-3">
-        <FormField
-          control={form.control}
-          name="decision_text"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Decision Text</FormLabel>
-              <FormControl>
-                <Input placeholder="Decision Text" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Decision ID Select Field */}
         <FormField
           control={form.control}
           name="decision_id"
@@ -98,11 +105,16 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             <FormItem className="flex flex-col">
               <FormLabel>Decision ID</FormLabel>
               <FormControl>
-                <select {...field}>
+                <select
+                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="form-select"
+                >
                   <option value="">Select a Decision ID</option>
-                  {decisionList.map((item: any) => (
-                    <option key={item.id} value={item.id}>
-                      {item.id}
+                  {decisionList.map((item, i) => (
+                    <option key={i} value={item.id}>
+                      {item.decision}
                     </option>
                   ))}
                 </select>
@@ -111,6 +123,8 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             </FormItem>
           )}
         />
+
+        {/* Rationale ID Select Field */}
         <FormField
           control={form.control}
           name="rationale_id"
@@ -118,10 +132,15 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             <FormItem className="flex flex-col">
               <FormLabel>Rationale ID</FormLabel>
               <FormControl>
-                <select {...field}>
+                <select
+                  {...field}
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="form-select"
+                >
                   <option value="">Select a Rationale ID</option>
-                  {rationaleData.map((item: any) => (
-                    <option key={item.id} value={item.id}>
+                  {rationaleData.map((item, i) => (
+                    <option key={i} value={item.id}>
                       {item.id}
                     </option>
                   ))}
@@ -131,6 +150,7 @@ export function SpecialtyForm({ isEdit, setSheetOpened }: any) {
             </FormItem>
           )}
         />
+
         <Button type="submit">Submit</Button>
       </form>
     </Form>
